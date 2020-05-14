@@ -22,7 +22,7 @@ def getCRPlayers(fld):
             actualayers.append(layer)
     return actualayers
 
-def style(fld, colorName='PuRd'):
+def style(fld, colorName = 'PuRd', interval = 5):
     myStyle = QgsStyle().defaultStyle()
     ramp = myStyle.colorRamp(colorName)
     c1 = ramp.color1()
@@ -37,28 +37,27 @@ def style(fld, colorName='PuRd'):
             upper = lmax
     colors = []
     max_erosion = int(round_up(upper))
-    max_erosion += 5
+    max_erosion += interval
     t_list = []
     init = 0
-    number_classes = range(0, max_erosion, 5)
-    nn = max_erosion/5
+    number_classes = range(0, max_erosion, interval)
+    nn = max_erosion/interval
     for i in number_classes:
         t_list.append(init)
         init += 1./(nn-1)
     for i in t_list:
         colors.append(linear_color_interpolation(c1, c2, i))
-    step = 5
     for layer in actualayers:
         range_list = []
         ll = lower
         for c in colors:
-            cat = [ll, ll + step, c.name()]
+            cat = [ll, ll + interval, c.name()]
             sym = QgsSymbol.defaultSymbol(layer.geometryType())
             sym.setColor(c)
             sym.symbolLayer(0).setStrokeStyle(Qt.PenStyle(Qt.NoPen))
             rng = QgsRendererRange(cat[0], cat[1], sym, '{0:.1f}-{1:.1f}'.format(cat[0], cat[1]))
             range_list.append(rng)
-            ll = ll + step
+            ll = ll + interval
         renderer = QgsGraduatedSymbolRenderer(fld, range_list)
         renderer.setMode(QgsGraduatedSymbolRenderer.Custom)
         layer.setRenderer(renderer)
