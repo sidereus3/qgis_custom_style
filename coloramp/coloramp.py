@@ -77,10 +77,10 @@ def getInterpolatedColors(nn, colorName):
         colors.append(linear_color_interpolation(c1, c2, i))
     return colors
 
-def renderingUpdate(layers, colors, interval, fld):
+def renderingUpdate(layers, colors, interval, fld, starting_lower):
     for layer in layers:
         range_list = []
-        lower = 0.0
+        lower = starting_lower
         for c in colors:
             cat = [lower, lower + interval, c.name()]
             sym = QgsSymbol.defaultSymbol(layer.geometryType())
@@ -106,7 +106,7 @@ def style(fld, multi, colorName = 'PuRd', interval = 5):
     nn = int(round_up(upper/interval))
     print(nn)
     colors = getInterpolatedColors(nn, colorName)
-    renderingUpdate(layers, colors, interval, fld)
+    renderingUpdate(layers, colors, interval, fld, 0.0)
 
 def style_na(fld):
     layers = getCRPlayers(fld)
@@ -114,17 +114,5 @@ def style_na(fld):
     colors = []
     colors.append(QColor(c))
     lmin = -1
-    lmax = 0
-
-    for layer in layers:
-        range_list = []
-        cat = [lmin, lmax, c]
-        sym = QgsSymbol.defaultSymbol(layer.geometryType())
-        sym.setColor(QColor(c))
-        sym.symbolLayer(0).setStrokeStyle(Qt.PenStyle(Qt.NoPen))
-        rng = QgsRendererRange(cat[0], cat[1], sym, '{0:.1f}-{1:.1f}'.format(cat[0], cat[1]))
-        range_list.append(rng)
-        renderer = QgsGraduatedSymbolRenderer(fld, range_list)
-        renderer.setMode(QgsGraduatedSymbolRenderer.Custom)
-        layer.setRenderer(renderer)
-        layer.triggerRepaint()
+    interval = 1
+    renderingUpdate(layers, colors, interval, fld, lmin)
