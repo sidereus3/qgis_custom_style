@@ -19,10 +19,16 @@ def round_up(n, decimals=0):
 def getCRPlayers(fld):
     layers = QgsProject().instance().mapLayers()
     actualayers = []
+    found = False
     for key, layer in layers.items():
         fld_index = layer.fields().lookupField(fld)
         if fld_index >= 0:
             actualayers.append(layer)
+            found = True
+
+    if not found:
+        msg = "Field " + fld + " not in attribute table"
+        raise Exception(msg)
     return actualayers
 
 def getMaxParallelVal(layers, fld):
