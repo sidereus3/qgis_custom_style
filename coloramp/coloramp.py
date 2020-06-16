@@ -100,7 +100,7 @@ def renderingUpdate(layers, colors, interval, fld, starting_lower):
         layer.setRenderer(renderer)
         layer.triggerRepaint()
 
-def style(fld, multi, colorName = 'PuRd', interval = 5):
+def style(fld, multi=True, colorName = 'PuRd', interval = 5):
 
     layers = getCRPlayers(fld)
     t = time.time()
