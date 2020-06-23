@@ -83,36 +83,41 @@ def getInterpolatedColors(nn, colorName):
         colors.append(linear_color_interpolation(c1, c2, i))
     return colors
 
-def renderingUpdate(layers, colors, interval, fld, starting_lower):
+def renderingUpdate(layers, colors, interval, fld, starting_lower, upper, classLimit):
     for layer in layers:
         range_list = []
         lower = starting_lower
+        upper_interval = lower + interval
         for c in colors:
-            cat = [lower, lower + interval, c.name()]
+            cat = [lower, upper_interval, c.name()]
             sym = QgsSymbol.defaultSymbol(layer.geometryType())
             sym.setColor(c)
             sym.symbolLayer(0).setStrokeStyle(Qt.PenStyle(Qt.NoPen))
             rng = QgsRendererRange(cat[0], cat[1], sym, '{0:.1f}-{1:.1f}'.format(cat[0], cat[1]))
             range_list.append(rng)
             lower = lower + interval
+            if lower == classLimit:
+                upper_interval = upper
+            else:
+                upper_interval = lower + interval
         renderer = QgsGraduatedSymbolRenderer(fld, range_list)
         renderer.setMode(QgsGraduatedSymbolRenderer.Custom)
         layer.setRenderer(renderer)
         layer.triggerRepaint()
 
-def style(fld, multi=True, colorName = 'PuRd', interval = 5):
+def style(fld, multi=True, colorName = 'PuRd', interval = 5, classLimit = 200):
 
     layers = getCRPlayers(fld)
     t = time.time()
     upper = getMaxVal(layers, fld, multi)
     elapsed = time.time() - t
-    print(elapsed)
-    print(upper)
+    print("Time to estimate max erosion: " + str(elapsed))
+    print("Max erorion value: " + str(upper))
 
-    nn = int(round_up(upper/interval))
-    print(nn)
+    nn = int(round_up(classLimit/interval)) + 1
+    print("Number of classes: " + str(nn))
     colors = getInterpolatedColors(nn, colorName)
-    renderingUpdate(layers, colors, interval, fld, 0.0)
+    renderingUpdate(layers, colors, interval, fld, 0.0, upper, classLimit)
 
 def style_na(fld):
     layers = getCRPlayers(fld)
@@ -121,4 +126,4 @@ def style_na(fld):
     colors.append(QColor(c))
     lmin = -1
     interval = 1
-    renderingUpdate(layers, colors, interval, fld, lmin)
+    renderingUpdate(layers, colors, interval, fld, lmin, 100, 100)
